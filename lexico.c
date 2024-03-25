@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <string.h>
+void Funcion1(FILE * nombre, int num);
 
 int main(int argc,char *argv[]){
     FILE * archivo;
@@ -29,7 +30,7 @@ int main(int argc,char *argv[]){
             //Aqui se continua con la ejecucion del programa, ya que se comprobaron los argumentos y el numero es valido
             switch (num){
             case 1:
-               printf("caso 1");
+               Funcion1(archivo,num);
                 break;
             case 2:
             printf("caso 2");
@@ -58,4 +59,16 @@ int main(int argc,char *argv[]){
     }
     }
     return 0;
+}
+
+void Funcion1(FILE * nombre, int num){
+    char caracter;
+    int i=-1;
+    printf("Funcion 1 escogida.\nargumento:%d\n",num);
+   caracter=fgetc(nombre);
+   printf("%c",caracter);
+   for(i=-1;caracter!=EOF;i++){
+    caracter=fgetc(nombre);
+    printf("%c",caracter);
+   }
 }
