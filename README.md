@@ -1,0 +1,3 @@
+--> Lexico.c es el codigo fuente del proyecto
+--> Lexico.exe usado para compilar el codigo
+--> test.c aqui se pondra el programa de prueba a analizar
