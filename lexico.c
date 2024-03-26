@@ -19,7 +19,7 @@
 #define MAX_NUMEROS 500
 
 //declaracion de funciones a usar en el programa
-void buscar_palabra_Reserv(FILE * archivo, int num);
+void buscar_palabra_Reserv(FILE * archivo);
 void imprimir_reservadas();
 
 void busca_identificadores(FILE * archivo);
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]){
 				switch (num){
 				case 1:
 					//opcion 1 palabras reservadas
-					buscar_palabra_Reserv(archivo,num);
+					buscar_palabra_Reserv(archivo);
 					fclose(archivo);
 					imprimir_reservadas();
 					break;
@@ -138,8 +138,8 @@ int main(int argc, char *argv[]){
 //**********************************FUNCIONES DE BUSQUEDA DE ELEMENTOS DEL LEXICO**********************************	
 
 //Funcion que encuentra las palabras reservadas y las guarda para imprimierlas posteriormente
-void buscar_palabra_Reserv(FILE * archivo, int num){
-	char palabra[20]; // La longitud de la palabra debería ser suficiente para el caso de uso
+void buscar_palabra_Reserv(FILE * archivo){
+	char palabra[20]; // La longitud de la palabra deberï¿½a ser suficiente para el caso de uso
     char caracter;
     int index = 0;
     //loop principal, leeremos los caractere hasta encontrar EOF
@@ -179,10 +179,10 @@ void busca_identificadores(FILE * archivo){
 	
 }
 
-//Funcion que encuentra los números (0 - 9) y los guarda para imprimierlos posteriormente
+//Funcion que encuentra los nï¿½meros (0 - 9) y los guarda para imprimierlos posteriormente
 void busca_numeros(FILE * archivo){
 	int numero;
-	//int bandera = 0; // Flag para indicar si estamos dentro de un número
+	//int bandera = 0; // Flag para indicar si estamos dentro de un nï¿½mero
 	
 	while ((numero = fgetc(archivo)) != EOF) {
 		if (isdigit(numero)) {
@@ -203,69 +203,53 @@ void busca_operadores(FILE * archivo){
 void busca_comentarios(FILE * archivo){
 	//Identificador de comentario
 	char id_comentario;
-	
 	//Cantidad de comentario en el archivo
 	int num_comentarios = 0;
-	
 	//Bandera para indicar si es un comentario
 	char es_comentario = 0;
-	
 	//Mientras no sea el final del archivo
 	while ((id_comentario = fgetc(archivo)) != EOF) {
 		switch (es_comentario){
 		//Busca si es un comentario
 		case 0:
 			if (id_comentario == '/') {
-				// Podría ser el inicio de un comentario
+				// Podrï¿½a ser el inicio de un comentario
 				int sig_carac = fgetc(archivo);
 				if (sig_carac == '*') {
 					//Bandera de un comentario de bloque
 					es_comentario = 1; 
-					
 					//Incrementa el conteo de comentarios
 					num_comentarios++;
-					
 					//Imprime el numero de comentario
 					printf("\nComentario numero %i:\n", num_comentarios);
-					
-					//Imprime los id de comentario
+					//Imprime los id de comentarios
 					putchar(id_comentario);
 					putchar(sig_carac);
-					
-					
 				} else if (sig_carac == '/') {
-					//Bandera de un comentario de línea
+					//Bandera de un comentario de lï¿½nea
 					es_comentario = 2;
-					
 					//Incrementa el conteo de comentarios
 					num_comentarios++;
-					
 					//Imprime el numero de comentario
-					printf("\nComentario numero %i:\n", num_comentarios);
-					
+					printf("\nComentario numero %i:\n", num_comentarios);	
 					//Imprime los id de comentario
 					putchar(id_comentario);
 					putchar(sig_carac);
-					
 				} else {
 					// No es un comentario, regresamos el cursor
 					fseek(archivo, -1, SEEK_CUR);
 				}
-				
 			}
 			break;
-			
 		// Dentro de un comentario de bloque
 		case 1:
 			//Imprime el comentario caracter a caracter
 			putchar(id_comentario);
-			
 			//Si se encunetra un * significa que el comentario puede acabar
 			if (id_comentario == '*') {
 				//Obtiene el siguiente caracter
-				int sig_carac = fgetc(archivo);
-				
-				//Si es / significa que el comentario acabó
+				int sig_carac = fgetc(archivo);				
+				//Si es / significa que el comentario acabï¿½
 				if (sig_carac == '/') {
 					//Bandera de busqueda de comentario
 					es_comentario = 0;
@@ -277,19 +261,16 @@ void busca_comentarios(FILE * archivo){
 				}
 			}
 			break;
-			
-		// Dentro de un comentario de línea
+		// Dentro de un comentario de lï¿½nea
 		case 2:
 			//Imprime el comentario caracter a caracter
 			putchar(id_comentario);
-			
-			//Si es \n significa que el comentario acabó
+			//Si es \n significa que el comentario acabï¿½
 			if (id_comentario == '\n') {
 				//Bandera de busqueda de comentario
 				es_comentario = 0;
 			}
 			break;
-			
 		default:
 			break;
 		}
@@ -298,7 +279,6 @@ void busca_comentarios(FILE * archivo){
 }
 
 //**********************************FUNCIONES DE IMPRESION DE ELEMENTOS DEL LEXICO**********************************
-
 //aqui solo imprimimos en pantalla las palabras reservadas encontradas
 //indicamos el total encontrado y cuales fueron
 void imprimir_reservadas(){
