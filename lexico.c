@@ -12,18 +12,20 @@
 #include <ctype.h>
 #include <string.h>
 
-//aqui le decimos al programa cuanto es el maximo permitido de palabras a encontrar
+//le decimos al programa cuanto es el maximo permitido de palabras a encontrar
 #define MAX_PALABRA_RESERVADA 500
 
-//aqui le decimos al programa cuanto es el maximo permitido de numeros a encontrar
+//le decimos al programa cuanto es el maximo permitido de numeros a encontrar
 #define MAX_NUMEROS 500
+
+#define MAX_OPERADORES 100
 
 //declaracion de funciones a usar en el programa
 void buscar_palabra_Reserv(FILE * archivo);
 void imprimir_reservadas();
 
 void busca_identificadores(FILE * archivo);
-void imprimir_identificadoes();
+void imprimir_identificadores();
 
 void busca_numeros(FILE * archivo);
 void imprimir_numeros();
@@ -37,15 +39,18 @@ void busca_comentarios(FILE * archivo);
 char *reservadas_encontradas[MAX_PALABRA_RESERVADA];
 int num_palabras_reservadas = 0;
 
-//arreglo y variables para loa numeros encontrados
+//arreglo y variables para los numeros encontrados
 int numeros_encontrados[MAX_NUMEROS];
 int num_numeros = 0;
+
+char operadores_encontrados[MAX_OPERADORES];
+int num_operadores = 0;
 
 //arreglo de palabras reservadas a comparar
 const char *palabra_reservada[]={
     // --> "", para agregar palabras reservadas, se pone la palabra tal y como aparece en medio de las comillas
     "if",
-    "else",
+    "else",	
     "for",
     "int",
     "float",
@@ -66,6 +71,8 @@ const char *palabra_reservada[]={
     "void",
     "argc",
     "argv",
+	"FILE",
+	"default",	
     NULL
 };
 
@@ -97,7 +104,7 @@ int main(int argc, char *argv[]){
 					//opcion 2 identificadores aA-zZ
 					busca_identificadores(archivo);
 					fclose(archivo);
-					imprimir_identificadoes();
+					imprimir_identificadores();
 					break;
 				case 3:
 					//opcion 3 numeros 0 1 2 3 4 5 6 7 8 9
@@ -183,7 +190,6 @@ void busca_identificadores(FILE * archivo){
 void busca_numeros(FILE * archivo){
 	int numero;
 	//int bandera = 0; // Flag para indicar si estamos dentro de un n�mero
-	
 	while ((numero = fgetc(archivo)) != EOF) {
 		if (isdigit(numero)) {
 			numero = numero - 48;
@@ -192,12 +198,15 @@ void busca_numeros(FILE * archivo){
 	}
 }
 
-
 //Funcion que encuentra los operadores (+ - / * < > =) y los guarda para imprimierlos posteriormente
 void busca_operadores(FILE * archivo){
-	
+    int caracter;
+    while ((caracter = fgetc(archivo))!= EOF) {
+        if (caracter == '+' || caracter == '-' || caracter == '*' || caracter == '/' || caracter == '<' || caracter == '>' || caracter == '=') {
+            operadores_encontrados[num_operadores++] = (char) caracter;
+        }
+    }
 }
-
 
 //Funcion que encuentra los comentarios y los guarda para imprimierlos posteriormente
 void busca_comentarios(FILE * archivo){
@@ -213,7 +222,7 @@ void busca_comentarios(FILE * archivo){
 		//Busca si es un comentario
 		case 0:
 			if (id_comentario == '/') {
-				// Podr�a ser el inicio de un comentario
+				// Podria ser el inicio de un comentario
 				int sig_carac = fgetc(archivo);
 				if (sig_carac == '*') {
 					//Bandera de un comentario de bloque
@@ -261,11 +270,11 @@ void busca_comentarios(FILE * archivo){
 				}
 			}
 			break;
-		// Dentro de un comentario de l�nea
+		// Dentro de un comentario de linea
 		case 2:
 			//Imprime el comentario caracter a caracter
 			putchar(id_comentario);
-			//Si es \n significa que el comentario acab�
+			//Si es \n significa que el comentario acabo
 			if (id_comentario == '\n') {
 				//Bandera de busqueda de comentario
 				es_comentario = 0;
@@ -288,7 +297,7 @@ void imprimir_reservadas(){
     }
 }
 
-void imprimir_identificadoes(){
+void imprimir_identificadores(){
 	
 }
 
@@ -300,5 +309,9 @@ void imprimir_numeros(){
 }
 
 void imprimir_operadores(){
-	
+ printf("Total de operadores encontrados:%i\n",num_operadores);
+    for(int i=0;i<num_operadores;i++){
+        printf(" %i :%c \n",i+1,operadores_encontrados[i]);
+    }
+    printf("\n");
 }
