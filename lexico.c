@@ -72,7 +72,14 @@ const char *palabra_reservada[]={
     "argc",
     "argv",
 	"FILE",
-	"default",	
+	"default",
+	"stdio.h",
+	"stdlib.h",
+	"stdbool.h",
+	"ctype.h",
+	"string.h",
+	"math.h",
+	"time.h",	
     NULL
 };
 
