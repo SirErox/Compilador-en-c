@@ -20,6 +20,8 @@
 
 #define MAX_OPERADORES 100
 
+#define MAX_IDENTIFICADORES 1000
+
 //declaracion de funciones a usar en el programa
 void buscar_palabra_Reserv(FILE * archivo);
 void imprimir_reservadas();
@@ -45,6 +47,9 @@ int num_numeros = 0;
 
 char operadores_encontrados[MAX_OPERADORES];
 int num_operadores = 0;
+
+char *identificadores_encontrados[MAX_IDENTIFICADORES];
+int num_identificadores  =0;
 
 //arreglo de palabras reservadas a comparar
 const char *palabra_reservada[]={
@@ -79,7 +84,15 @@ const char *palabra_reservada[]={
 	"ctype.h",
 	"string.h",
 	"math.h",
-	"time.h",	
+	"time.h",
+	"short",
+	"unsigned",
+	"break",
+	"continue",
+	"enum",
+	"goto",
+	"sizeof",
+	"static",	
     NULL
 };
 
@@ -87,7 +100,6 @@ int main(int argc, char *argv[]){
     FILE * archivo;
     //char caracter;
     int num;
-	
     //Validamos la cantidad de argumentos pasados al compilar, si no dara error
     if(argc!=3){
         printf("Error(0):Argumentos insuficientes\n\t Se requieren 2 argumentos");
@@ -147,7 +159,6 @@ int main(int argc, char *argv[]){
     }
     return 0;
 }
-
 	
 //**********************************FUNCIONES DE BUSQUEDA DE ELEMENTOS DEL LEXICO**********************************	
 
@@ -190,7 +201,63 @@ void buscar_palabra_Reserv(FILE * archivo){
 
 //Funcion que encuentra los identificadores (Aa - Zz) y los guarda para imprimierlos posteriormente
 void busca_identificadores(FILE * archivo){
-	
+    char identificador[20];
+    char caracter;
+    int index = 0;
+    int es_identificador = 0;
+
+   while ((caracter = fgetc(archivo))!= EOF) {
+        // Si es una letra o un caracter de subrayado, se agrega al identificador
+        if (isalpha(caracter) || caracter == '_') {
+            identificador[index++] = (char) caracter;
+            identificador[index] = '\0';
+            es_identificador = 1;
+        } else if (caracter == '<') {
+            // Si es un caracter <, se salta el resto de la cadena
+            while ((caracter = fgetc(archivo))!= '>') {
+                // No hacer nada
+            }
+		} else if (caracter == '\"' || caracter == '\'') {
+            // Si es una comilla doble o simple, se salta el resto de la cadena
+            while ((caracter = fgetc(archivo))!= '\"' && caracter!= '\'') {
+                // No hacer nada
+            }
+        } else if (caracter == '/' && (caracter = fgetc(archivo)) == '/') {
+            // Si es un comentario de línea, se salta el resto de la línea
+            while ((caracter = fgetc(archivo))!= '\n') {
+                // No hacer nada
+            }
+            // Se reinicia el identificador
+            index = 0;
+            es_identificador = 0;
+        }else if (caracter == '/' && (caracter = fgetc(archivo)) == '*') {
+            // Si es un comentario de bloque, se salta el resto de la cadena
+            while ((caracter = fgetc(archivo))!= '*' && (caracter = fgetc(archivo))!= '/') {
+                // No hacer nada
+            }
+        } else {
+            // Si no es una letra, un número o un caracter de subrayado, se comprueba si se está procesando un identificador
+            if (index > 0 && es_identificador) {
+                index = 0;
+                es_identificador = 0;
+
+                // Se comprueba si el identificador es una palabra reservada
+                bool es_palabra_reservada = false;
+                for (const char **word = palabra_reservada; *word!= NULL; word++) {
+                    if (strcmp(*word, identificador) == 0) {
+                        es_palabra_reservada = true;
+                        break;
+                    }
+                }
+
+                // Si no es una palabra reservada, se guarda en el arreglo de identificadores
+                if (!es_palabra_reservada) {
+                    //strdup crea una copia de la palabra y devuelve un puntero a ella
+                    identificadores_encontrados[num_identificadores++] = strdup(identificador);
+                }
+            }
+        }
+    }
 }
 
 //Funcion que encuentra los n�meros (0 - 9) y los guarda para imprimierlos posteriormente
@@ -305,7 +372,10 @@ void imprimir_reservadas(){
 }
 
 void imprimir_identificadores(){
-	
+	    printf("Total de identificadores encontrados:%i\n", num_identificadores);
+    for(int i=0; i<num_identificadores; i++){
+        printf("%i : %s\n", i+1, identificadores_encontrados[i]);
+    }
 }
 
 void imprimir_numeros(){
