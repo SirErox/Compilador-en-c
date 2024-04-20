@@ -201,7 +201,7 @@ void buscar_palabra_Reserv(FILE * archivo){
 
 //Funcion que encuentra los identificadores (Aa - Zz) y los guarda para imprimierlos posteriormente
 void busca_identificadores(FILE * archivo){
-    char identificador[20];
+ char identificador[20];
     char caracter;
     int index = 0;
     int es_identificador = 0;
@@ -215,7 +215,7 @@ void busca_identificadores(FILE * archivo){
         } else if (caracter == '<') {
             // Si es un caracter <, se salta el resto de la cadena
             while ((caracter = fgetc(archivo))!= '>') {
-                // No hacer nada
+                // No hacer nada por el momento
             }
 		} else if (caracter == '\"' || caracter == '\'') {
             // Si es una comilla doble o simple, se salta el resto de la cadena
@@ -224,6 +224,7 @@ void busca_identificadores(FILE * archivo){
             }
         } else if (caracter == '/' && (caracter = fgetc(archivo)) == '/') {
             // Si es un comentario de línea, se salta el resto de la línea
+			es_identificador=0; //no es identificador
             while ((caracter = fgetc(archivo))!= '\n') {
                 // No hacer nada
             }
@@ -232,11 +233,17 @@ void busca_identificadores(FILE * archivo){
             es_identificador = 0;
         }else if (caracter == '/' && (caracter = fgetc(archivo)) == '*') {
             // Si es un comentario de bloque, se salta el resto de la cadena
-            while ((caracter = fgetc(archivo))!= '*' && (caracter = fgetc(archivo))!= '/') {
-                // No hacer nada
-            }
+				es_identificador=0; //no es un identificador
+				while ((caracter = fgetc(archivo))!= '*' && (caracter=fgetc(archivo)!='\n')) {
+					while( (caracter = fgetc(archivo))!= '/'){
+						//no hacer nada
+					}
+					//no hacer nada
+            	}
+				index=0;
+				es_identificador=0;
         } else {
-            // Si no es una letra, un número o un caracter de subrayado, se comprueba si se está procesando un identificador
+            // Si no es una letra o un caracter de subrayado, se comprueba si se está procesando un identificador
             if (index > 0 && es_identificador) {
                 index = 0;
                 es_identificador = 0;
