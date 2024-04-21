@@ -9,7 +9,7 @@ int linea=1,columna=1;
 // y la linea es cada linea del documento
 
 //declaracion de funciones para usarse en el documento
-void errores(int linea, int columna, char caracter);
+void errores(int linea, int columna);
 
 int main(int argc, char *argv[]){
     FILE * archivo;
@@ -22,14 +22,77 @@ int main(int argc, char *argv[]){
         return 1;
     }else{
         //el archivo existe, por lo tanto leeremos lo que contiene
-       while((caracter=fgetc(archivo))!=EOF){
-        printf("%c",caracter);
+       for(columna=0;(caracter=fgetc(archivo))!=EOF;columna++){
+        expresion[columna]=caracter; 
        }
+       expresion[columna]='\0';
+       fclose(archivo); //liberamos el archivo y procedemos a analizar la expresion obtenida
+
+       for(columna=0;expresion[columna]!='\0';columna++){
+        if(expresion[columna]=='x'){
+            columna++;
+            if((expresion[columna]=='+') || (expresion[columna]=='-') || (expresion[columna]=='*') || (expresion[columna]=='/') ){
+                columna++;
+                if(expresion[columna]=='x'){
+                    columna++;
+                    if( (expresion[columna]=='+') || (expresion[columna]=='-') || (expresion[columna]=='*') || (expresion[columna]=='/') ){
+                        columna++;
+                        if(expresion[columna]=='x'){
+                            columna++;
+                            if( (expresion[columna]=='+') || (expresion[columna]=='-') || (expresion[columna]=='*') || (expresion[columna]=='/') ){
+                                columna++;
+                                if(expresion[columna]=='x'){
+                                    printf("sintaxis valida\n");
+                                    break;
+                                }else{
+                                    printf("Sintaxis invalida");
+                                    printf("\nSe esperaba: %c",expresion[columna+1]);
+                                    errores(linea,columna);
+                                    break;
+                                }
+                            }else{
+                                printf("Sintaxis invalida");
+                                printf("\nSe esperaba : %c",expresion[columna+1]);
+                                errores(linea,columna);
+                                break;
+                            }
+                        }else{
+                            printf("Sintaxis invalida");
+                            printf("\nSe esperaba : %c",expresion[columna+1]);
+                            errores(linea,columna);
+                            break;
+                        }
+                    }else{
+                        printf("Sintaxis invalida");
+                        printf("\nSe esperaba : %c",expresion[columna+1]);
+                        errores(linea,columna);
+                        break;
+                    }
+                }else{
+                    printf("Sintaxis invalida");
+                    printf("\nSe esperaba : %c",expresion[columna+1]);
+                    errores(linea,columna);
+                    break;
+                 }
+            }else{
+                printf("Sintaxis invalida");
+                printf("\nSe esperaba : %c",expresion[columna+1]);
+                errores(linea,columna);
+                break;
+            }
+        } else if(expresion[columna]=='x' && (expresion[columna]=='\0' || expresion[columna]==EOF)){
+                printf("Sintaxis valida");
+                }else{
+                    printf("\nSe esperaba : %c",expresion[columna+1]);
+                    errores(linea,columna);
+                    break;
+                }
+        }
     }
+    printf("%s",expresion);
     return 0;
 }
 
-
-void errores(int linea, int columna,char caracter){
+void errores(int linea, int columna){
     printf("\nError en la pos: (%d,%d)\n",linea,columna);
 }
