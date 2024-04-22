@@ -46,50 +46,53 @@ int main(int argc, char *argv[]){
                                     break;
                                 }else{
                                     printf("Sintaxis invalida");
-                                    printf("\nSe esperaba: %c",expresion[columna+1]);
                                     errores(linea,columna);
                                     break;
                                 }
                             }else{
-                                printf("Sintaxis invalida");
-                                printf("\nSe esperaba : %c",expresion[columna+1]);
-                                errores(linea,columna);
-                                break;
+                                if(expresion[columna]==EOF || expresion[columna]=='\0'){
+                                    printf("Sintaxis valida");
+                                    break;
+                                }else{
+                                    printf("Sintaxis invalida");
+                                    errores(linea,columna);
+                                    break;
+                                }
                             }
                         }else{
                             printf("Sintaxis invalida");
-                            printf("\nSe esperaba : %c",expresion[columna+1]);
                             errores(linea,columna);
                             break;
                         }
                     }else{
-                        printf("Sintaxis invalida");
-                        printf("\nSe esperaba : %c",expresion[columna+1]);
-                        errores(linea,columna);
-                        break;
+                        if(expresion[columna]==EOF || expresion[columna]=='\0'){
+                            printf("Sintaxis Valida");
+                            break;
+                        }else{
+                            printf("Sintaxis invalida");
+                            errores(linea,columna);
+                            break;
+                        }
                     }
                 }else{
                     printf("Sintaxis invalida");
-                    printf("\nSe esperaba : %c",expresion[columna+1]);
                     errores(linea,columna);
                     break;
                  }
             }else{
                 printf("Sintaxis invalida");
-                printf("\nSe esperaba : %c",expresion[columna+1]);
                 errores(linea,columna);
                 break;
             }
-        } else if(expresion[columna]=='x' && (expresion[columna]=='\0' || expresion[columna]==EOF)){
+        } else if(expresion[columna]=='x' && (expresion[columna+1]=='\0' || expresion[columna+1]==EOF)){
                 printf("Sintaxis valida");
                 }else{
-                    printf("\nSe esperaba : %c",expresion[columna+1]);
                     errores(linea,columna);
                     break;
                 }
         }
     }
-    printf("%s",expresion);
+    printf("\nExpresion leida: %s",expresion);
     return 0;
 }
 
