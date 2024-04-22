@@ -84,7 +84,7 @@ int main(int argc, char *argv[]){
                 errores(linea,columna);
                 break;
             }
-        } else if(expresion[columna]=='x' && (expresion[columna+1]=='\0' || expresion[columna+1]==EOF)){
+        } else if(expresion[columna+1]=='\0' || expresion[columna+1]==EOF){
                 printf("Sintaxis valida");
                 }else{
                     errores(linea,columna);
