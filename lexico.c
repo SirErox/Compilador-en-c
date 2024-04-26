@@ -205,6 +205,7 @@ void busca_identificadores(FILE * archivo){
     char caracter;
     int index = 0;
     int es_identificador = 0;
+	int es_comentario = 0;
 
    while ((caracter = fgetc(archivo))!= EOF) {
         // Si es una letra o un caracter de subrayado, se agrega al identificador
@@ -222,32 +223,35 @@ void busca_identificadores(FILE * archivo){
             while ((caracter = fgetc(archivo))!= '\"' && caracter!= '\'') {
                 // No hacer nada
             }
-        } else if (caracter == '/' && (caracter = fgetc(archivo)) == '/') {
-            // Si es un comentario de línea, se salta el resto de la línea
-			es_identificador=0; //no es identificador
-            while ((caracter = fgetc(archivo))!= '\n') {
-                // No hacer nada
-            }
-            // Se reinicia el identificador
-            index = 0;
-            es_identificador = 0;
-        }else if (caracter == '/' && (caracter = fgetc(archivo)) == '*') {
-            // Si es un comentario de bloque, se salta el resto de la cadena
-				es_identificador=0; //no es un identificador
-				while ((caracter = fgetc(archivo))!= '*' && (caracter=fgetc(archivo)!='\n')) {
-					while( (caracter = fgetc(archivo))!= '/'){
-						//no hacer nada
+        } else if (caracter == '/'){
+			//para iniciar un comentario siempre es con una diagonal
+				//printf("\ncaracter actual:%c",caracter);
+				if(caracter=='/'){
+					//si es comentario de linea, inicia con doble diagonal
+					while( (caracter=fgetc(archivo)!='\n')){
+						//no hacer nada hasta que se brinca de linea
 					}
-					//no hacer nada
-            	}
-				index=0;
-				es_identificador=0;
+					caracter=fgetc(archivo);
+					
+				}
+				if(caracter=='*'){
+					//printf("\ncaracter actual:%c",caracter);
+					//si es comentario d bloque, empieza con diagonal y un asterisco
+					caracter=fgetc(archivo);
+						while ((caracter = fgetc(archivo))!='*' && (caracter = fgetc(archivo))!= '/'){
+						//seguiremos leyendo hasta que se encuentre el indicador de finalizacion de comentario de bloque
+						//printf("\ncaracter actual:%c",caracter);
+						}
+					printf("\ncaracter actual:%c",caracter);
+					//reiniciamos el identificador
+					index=0;
+					es_identificador=0;
+				}
         } else {
             // Si no es una letra o un caracter de subrayado, se comprueba si se está procesando un identificador
             if (index > 0 && es_identificador) {
                 index = 0;
                 es_identificador = 0;
-
                 // Se comprueba si el identificador es una palabra reservada
                 bool es_palabra_reservada = false;
                 for (const char **word = palabra_reservada; *word!= NULL; word++) {
@@ -372,28 +376,28 @@ void busca_comentarios(FILE * archivo){
 //aqui solo imprimimos en pantalla las palabras reservadas encontradas
 //indicamos el total encontrado y cuales fueron
 void imprimir_reservadas(){
-    printf("Total de palabras reservadas encontradas:%i\n",num_palabras_reservadas);
+    printf("\nTotal de palabras reservadas encontradas:%i\n",num_palabras_reservadas);
     for(int i=0;i<num_palabras_reservadas;i++){
         printf("%i : %s\n",i+1,reservadas_encontradas[i]);
     }
 }
 
 void imprimir_identificadores(){
-	    printf("Total de identificadores encontrados:%i\n", num_identificadores);
+	    printf("\nTotal de identificadores encontrados:%i\n", num_identificadores);
     for(int i=0; i<num_identificadores; i++){
         printf("%i : %s\n", i+1, identificadores_encontrados[i]);
     }
 }
 
 void imprimir_numeros(){
-	printf("Total de numeros encontrados:%i\n",num_numeros);
+	printf("\nTotal de numeros encontrados:%i\n",num_numeros);
 	for(int i = 0; i < num_numeros; i++){
 		printf("%i : %i\n", i + 1, numeros_encontrados[i]);
 	}
 }
 
 void imprimir_operadores(){
- printf("Total de operadores encontrados:%i\n",num_operadores);
+ printf("\nTotal de operadores encontrados:%i\n",num_operadores);
     for(int i=0;i<num_operadores;i++){
         printf(" %i :%c \n",i+1,operadores_encontrados[i]);
     }
