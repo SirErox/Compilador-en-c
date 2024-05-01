@@ -37,6 +37,8 @@ void imprimir_operadores();
 
 void busca_comentarios(FILE * archivo);
 
+void error(int linea,int columna, int tipo,char caracter);
+
 //arreglo y variables para las palabras reservadas encontradas
 char *reservadas_encontradas[MAX_PALABRA_RESERVADA];
 int num_palabras_reservadas = 0;
@@ -50,6 +52,9 @@ int num_operadores = 0;
 
 char *identificadores_encontrados[MAX_IDENTIFICADORES];
 int num_identificadores  =0;
+
+//variables de manejo de archivos
+int linea, columna=0;
 
 //arreglo de palabras reservadas a comparar
 const char *palabra_reservada[]={
@@ -102,7 +107,7 @@ int main(int argc, char *argv[]){
     int num;
     //Validamos la cantidad de argumentos pasados al compilar, si no dara error
     if(argc!=3){
-        printf("Error(0):Argumentos insuficientes\n\t Se requieren 2 argumentos");
+        error(linea,columna,0,'x'); //se manda el error tipo 0, indicando que los argumentos no son validos
         return 1;
     }else{
 		// se obtiene el nombre del programa a comprobar, el argumento r es para abrir el archivo en modo lectura pero solo si el archivo existe
@@ -144,15 +149,16 @@ int main(int argc, char *argv[]){
 					break;
 				default:
 					fclose(archivo);
-					printf("Error(3):El numero '%d' debe estar entre el 1 y el 5.\n\t Favor de checar el numero ingresado.",num);
+					error(linea,columna,3,'x');
 					break;
 				}
 			} else{       
-				printf("Error(2):Formato de argumento invalido.\n\t Debe ser '/<numero>'");
+				error(linea,columna,2,'x');
 				return 1;
 			}
 		}
 		else{
+			//error(linea,columna,1,argv[1]);
 			printf("Error(1):Archivo '%s' no encontrado\n\t Favor de verificar el nombre del archivo, tambien se debe incluir la extension.",argv[1]);
 			return 1; //regresamos 1 cuando se encuentra un error al abrir el archivo
 		}
@@ -402,4 +408,53 @@ void imprimir_operadores(){
         printf(" %i :%c \n",i+1,operadores_encontrados[i]);
     }
     printf("\n");
+}
+
+//---------------------------------MANEJO DE ERRORES----------------------------------------------------------
+void error(int linea,int columna, int tipo, char caracter){
+	//en esta funcion recibimos 3 datos, la linea, la columna y el tipo de error que queramos mostrar.
+	if(tipo==0){
+		printf("\n");
+		printf("Error al pasar argumentos: Argumentos insuficientes\n\t Se requieren exactamente 2 argumentos\n\t <lexico> <nombre del programa a verificar> <funcion a probar>\n");
+		printf("\n");
+	}
+	if(tipo==2){
+		printf("\n");
+		printf("\nError en argumentos: Formato de argumento invalido.\n\t Debe ser '/<numero>'\n");
+		printf("\n");
+	}
+	if(tipo==3){
+		printf("\nError en numero de funcion:El numero ingresado debe estar entre el 1 y el 5.\n\t Favor de checar el numero ingresado\n");
+		printf("\n");
+	}
+	/*
+	switch (tipo){
+		//si recibimos un cero, se estan pasando una cantidad de argumentos invalida, 
+	case 0:
+		printf("\n");
+		printf("Error al pasar argumentos: Argumentos insuficientes\n\t Se requieren exactamente 2 argumentos\n\t <lexico> <nombre del programa a verificar> <funcion a probar>\n");
+		printf("\n");
+		break;
+		//si recibimos un dos, indica que algun argumento es invalido
+	case 1:
+		printf("\n");
+		printf("\nError(1):Archivo '%s' no encontrado\n\t Favor de verificar el nombre del archivo, tambien se debe incluir la extension\n",caracter);
+		break;
+	case 2:
+		printf("\n");
+		printf("\nError en argumentos: Formato de argumento invalido.\n\t Debe ser '/<numero>'\n");
+		printf("\n");
+		break;
+		//si recibimos un tres, indica que el numero ingresado no es valido o esta fuera de rango
+	case 3:
+		printf("\nError en numero de funcion:El numero ingresado debe estar entre el 1 y el 5.\n\t Favor de checar el numero ingresado\n");
+		printf("\n");
+		break;
+
+	default:
+		break;
+	}
+
+*/
+
 }
