@@ -1,0 +1,34 @@
+/*
+fecha de entrega del programa es la misma del ordinario, del 22 en 13 dias
+if
+file *fpi, *fpo
+fpi es el archivo compilado.cad
+fpo es el archivo asmm de salida compilado.asm
+
+
+lo siguiente se le pasa al buffer para que lo ejecute en partes, ya que solo se genera si no se encuentran errores
+
+"nasm -f elf64 compilado.asm"
+"ld compilado.o -o compilado"
+"compilado"
+system(buffer)
+execvp(buffer)
+
+*/
+
+/*
+
+programa de ejemplo no completo
+el programa tiene que traducir del codigo .c a codigo maquina(asm) y que sea compilable
+section .data
+    cad tmp "hola"
+    
+
+mov ecx, 10
+mov edx, 10
+ciclo1:
+ ciclo2:
+    mov eax, 4
+
+objdump -S programa 
+*/
