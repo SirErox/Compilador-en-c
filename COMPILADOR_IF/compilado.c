@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 /*
  * Autores: David Lozano Bañuelos
  *          Bernardo Nava Trinidad
@@ -12,25 +13,32 @@ void error(int tipo, char **manejo);
 
 void main(int argc, char *argv[]){
     FILE * archivo_entrada;
-    FILE * archivo_salida;
+    //FILE * archivo_salida;
     //verificamos si se esta pasando el archivo a analizar
     if(argc!=2){
         error(00,argv);
+//de ser asi, checamos si es un .c, ya que es el tipo de archivo que necesitamos
+    } else if( (strstr(argv[1],".c"))==NULL){
+        //si no se encuentra, dara error 1, indicando que se debe revisar el nombre pasado como argumento
+        error(01,argv);
     }else{
         //intentamos abrir el archivo, el cual tiene que estar creado
         //r — abre el archivo en modo de solo lectura. 
         archivo_entrada=fopen(argv[1],"r");
-        //a — abre el archivo para agregar información (si no existe lo crea).
-        archivo_salida=fopen("compilado.asm","a");
-        //si no se puede abrir dara error
+        /*a — abre el archivo para agregar información (si no existe lo crea).
+            archivo_salida=fopen("compilado.asm","a");
+            //si no se puede abrir dara error
+        */
         if(!archivo_entrada){
             error(01,argv);        
+            /*
             if(!archivo_salida){
                 error(02,argv);
             }
+            */
         //si se pudo leer el archivo de entrada y se crea el archivo de salida, podemos continuar
         }else{
-
+            printf("\nArchivo encontrado, abriendo...");
         }
     }
 }
@@ -45,7 +53,8 @@ void error(int tipo, char **manejo){
             break;
             case 01:
                 printf("\nError 1: Archivo no encontrado o mal escrito.\n");
-                printf("----> \"%s\" no se encontro o esta mal escrito.\nRecuerda que tambien se pone la extension del archivo.",manejo[1]);
+                printf("----> \"%s\" no se encontro o esta mal escrito.\n",manejo[1]);
+                printf("Te recuerdo que el programa necesita un archivo con extension .c, otro tipo dara error.");
                 exit(1);
             break;
             case 02:
