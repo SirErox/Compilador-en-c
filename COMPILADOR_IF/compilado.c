@@ -71,3 +71,7 @@ fwrite("mov eax,1\n",1,strlen("mov eax,1\n"), manejo);
 fwrite("moc ebx,0\n",1,strlen("mov ebx,0\n"), manejo);
 fwrite("int 80h\n",1,strlen("int 80h\n"), manejo);
 }
+
+void compiladoasm(FILE * asm){
+    
+}
