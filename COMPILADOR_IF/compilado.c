@@ -10,10 +10,11 @@
 
 //declaracion de funciones a usar en todo el codigo
 void error(int tipo, char **manejo);
+void cerrarasm(FILE * manejo);
 
 void main(int argc, char *argv[]){
     FILE * archivo_entrada;
-    //FILE * archivo_salida;
+    FILE * archivo_salida;
     //verificamos si se esta pasando el archivo a analizar
     if(argc!=2){
         error(00,argv);
@@ -25,20 +26,17 @@ void main(int argc, char *argv[]){
         //intentamos abrir el archivo, el cual tiene que estar creado
         //r — abre el archivo en modo de solo lectura. 
         archivo_entrada=fopen(argv[1],"r");
-        /*a — abre el archivo para agregar información (si no existe lo crea).
-            archivo_salida=fopen("compilado.asm","a");
-            //si no se puede abrir dara error
-        */
-        if(!archivo_entrada){
+        //a — abre el archivo para agregar información (si no existe lo crea).
+        archivo_salida=fopen("compilado.asm","a");
+        if(!archivo_entrada)
             error(01,argv);        
-            /*
             if(!archivo_salida){
                 error(02,argv);
-            }
-            */
+            
         //si se pudo leer el archivo de entrada y se crea el archivo de salida, podemos continuar
         }else{
             printf("\nArchivo encontrado, abriendo...");
+            cerrarasm(archivo_salida);
         }
     }
 }
@@ -62,4 +60,14 @@ void error(int tipo, char **manejo){
                 exit(2);
             break;
         }
+}
+
+void cerrarasm(FILE * manejo){
+//se agregan hasta el final del archivo las lineas 
+//mov eax,1
+//int 80h
+fseek(manejo,0,SEEK_END);
+fwrite("mov eax,1\n",1,strlen("mov eax,1\n"), manejo);
+fwrite("moc ebx,0\n",1,strlen("mov ebx,0\n"), manejo);
+fwrite("int 80h\n",1,strlen("int 80h\n"), manejo);
 }
