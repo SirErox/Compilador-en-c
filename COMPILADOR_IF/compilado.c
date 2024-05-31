@@ -11,6 +11,7 @@
 //declaracion de funciones a usar en todo el codigo
 void error(int tipo, char **manejo);
 void cerrarasm(FILE * manejo);
+void compiladoasm(char  *archivo);
 
 void main(int argc, char *argv[]){
     FILE * archivo_entrada;
@@ -37,6 +38,8 @@ void main(int argc, char *argv[]){
         }else{
             printf("\nArchivo encontrado, abriendo...");
             cerrarasm(archivo_salida);
+            fclose(archivo_salida);
+            compiladoasm("compilado.asm");
         }
     }
 }
@@ -68,10 +71,20 @@ void cerrarasm(FILE * manejo){
 //int 80h
 fseek(manejo,0,SEEK_END);
 fwrite("mov eax,1\n",1,strlen("mov eax,1\n"), manejo);
-fwrite("moc ebx,0\n",1,strlen("mov ebx,0\n"), manejo);
+fwrite("mov ebx,0\n",1,strlen("mov ebx,0\n"), manejo);
 fwrite("int 80h\n",1,strlen("int 80h\n"), manejo);
 }
 
-void compiladoasm(FILE * asm){
-    
+void compiladoasm(char *archivo) {
+    char *const args[] = {"nasm", "-f", "elf64", archivo, NULL};
+    char *const more[]= {"ld","compilado.o","-o","compilado"};
+    if (execvp(args[0], args) == -1) {
+        perror("\nexecvp");
+        exit(1);
+    }
+    if (execvp(more[0], more) == -1) {
+        perror("\nexecvp");
+        exit(1);
+    }
+    system("./compilado");
 }
