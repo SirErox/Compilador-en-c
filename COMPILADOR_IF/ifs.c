@@ -54,8 +54,9 @@ void main(int argc, char *argv[]){
         //intentamos abrir el archivo, el cual tiene que estar creado
         //r — abre el archivo en modo de solo lectura. 
         archivo_entrada=fopen(argv[1],"r");
-        //a — abre el archivo para agregar información (si no existe lo crea).
-        archivo_salida=fopen("compilado.asm","a");
+        //"w+" : crear un archivo para lectura y escritura, se crea si no existe o se sobreescribe si existe.
+	    //se optp por eso para obtener una salida siempre actualizada...
+        archivo_salida=fopen("compilado.asm","w+");
         if(!archivo_entrada)
             error(01,argv);        
             if(!archivo_salida){
@@ -63,15 +64,18 @@ void main(int argc, char *argv[]){
             
         //si se pudo leer el archivo de entrada y se crea el archivo de salida, podemos continuar
         }else{
-            printf("\nArchivo encontrado, abriendo...");
+            printf("Archivo encontrado, abriendo...\n");
             Lexico(archivo_entrada);
             fclose(archivo_entrada);
+//se debe tener precaucion con lo que se pone en el archivo de salida, ya que no reemplaza lo que contiene el documento
             cerrarasm(archivo_salida);
             fclose(archivo_salida);
             compiladoasm("compilado.asm");
         }
     }
 }
+
+//
 //----------------------------------------------------------------------------------------------------------------------
 //                                              FUNCIONES
 //funcion para el manejo de errores

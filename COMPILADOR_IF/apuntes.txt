@@ -32,3 +32,25 @@ ciclo1:
 
 objdump -S programa 
 */
+
+
+void traduce_ifs(FILE *archivo_entrada, FILE *archivo_salida) {
+    char linea[1024];
+    int condicion = 0;
+
+    while (fgets(linea, sizeof(linea), archivo_entrada)!= NULL) {
+        if (strstr(linea, "if")!= NULL) {
+            // Aquí puedes agregar el código para traducir la sentencia if a lenguaje ensamblador
+            fprintf(archivo_salida, "Se encontro una sentencia if en la linea: %s", linea);
+            condicion = 1;
+        } else if (strstr(linea, "else")!= NULL) {
+            // Aquí puedes agregar el código para traducir la sentencia else a lenguaje ensamblador
+            fprintf(archivo_salida, "Se encontro una sentencia else en la linea: %s", linea);
+            condicion = 0;
+        } else if (condicion == 1) {
+            // Aquí puedes agregar el código para traducir el código dentro del if a lenguaje ensamblador
+            fprintf(archivo_salida, "Se encontro código dentro del if en la linea: %s", linea);
+        }
+        traduce_ifs(archivo_entrada, archivo_salida);
+    }
+}

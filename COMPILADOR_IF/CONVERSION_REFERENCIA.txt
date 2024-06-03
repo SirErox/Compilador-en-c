@@ -1,0 +1,35 @@
+Dejo el link de una conversacion con chatgpt para aclarar mejor el panorama:
+
+https://chatgpt.com/share/11a3ff8a-0cd7-4ae4-9b99-8e8f21ca71b9
+
+Un if en c es el siguiente ejemplo:
+en ambos casos pondremos un 1 en la condicion para simplificar el uso del if,
+siendo un if basico:
+    if(1){
+        codigo a ejecutar si se cumple la condicion
+    } else{
+        codigo a ejecutar si no se cumple la condicion
+    }
+
+siendo un if anidado:
+    if(1){
+        if(1){
+            codigo a ejecutar si se cumplen ambas condiciones
+        }
+        codigo a ejecutar si se cumple la condicion1
+    } else{
+        codigo a ejecutar si no se cumple la condicion 1
+    }
+
+un if  en codigo ensamblador es el siguiente ejemplo:
+tomando de referencia el if basico
+    _start:
+    aqui cargamos a los registros las variables a comparar
+        mov eax,[a];
+        mov ebx,[b];
+ 
+        cmp eax,ebx;      aqui es la funcion if con la condicion
+        jge else; ve a la rutina "else" si eax es mayor o igual que ebx
+                  lo que seria el codigo que se ejecutaria si la condicion se cumple 
+        jl menor_que; ve a la rutina "menor_que" si eax es menor que ebx....
+        
