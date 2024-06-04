@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <ctype.h>
 
 #define MAX_LONG_TOKEN 100
 #define TAM_TABLA 100
@@ -67,7 +68,8 @@ void main(int argc, char *argv[]){
             printf("Archivo encontrado, abriendo...\n");
             Lexico(archivo_entrada);
 //se debe tener precaucion con lo que se pone en el archivo de salida, ya que no reemplaza lo que contiene el documento
-            traduce_ifs(archivo_entrada,archivo_salida);
+            rewind(archivo_entrada);
+			traduce_ifs(archivo_entrada,archivo_salida);
 			cerrarasm(archivo_salida);
 			fclose(archivo_entrada);
 			fclose(archivo_salida);
@@ -113,6 +115,7 @@ fwrite("    mov eax,1\n",1,strlen("    mov eax,1\n"), manejo);
 fwrite("    mov ebx,0\n",1,strlen("    mov ebx,0\n"), manejo);
 fwrite("    int 80h\n",1,strlen("    int 80h\n"), manejo);
 }
+
 //funcion para el compilado del archivo .asm
 //a travez de comandos ingresados con EXECVP compilamos el .asm
 void compiladoasm(char *archivo) {
@@ -128,6 +131,7 @@ void compiladoasm(char *archivo) {
     }
     //system("./compilado");
 }
+
 //Inicio de la  tabla de simbolos
 void IniTablaSimbolos(Tabla_Simbolos *tabla){
 	tabla -> c = 0;
@@ -144,6 +148,7 @@ void AddToken(Tabla_Simbolos *tabla, const char *token, Tipo_de_Token tipo){
 		printf("Tabla de simbolos llena!\n");
 	}
 }
+
 //funcion para comprobar si el token encontrado es palabra reservada o no
 int EsReservada(const char *palabra){
 	const char *PalabrasReservadas[] = {
@@ -166,6 +171,7 @@ int EsReservada(const char *palabra){
 	}
 	return 0;
 }
+
 //funcion para saber si el token encontrado es un separador 
 int EsSeparador(char cs){
 	char Separadores[] = {
@@ -194,11 +200,6 @@ int EsSeparador(char cs){
 
 //Funcion que lee caracter por caracter el archivo que le pasemos y compara el token encontrado
 void ProcesadorLexico(FILE *archivo_entrada, Tabla_Simbolos *tabla){
-	if(archivo_entrada==NULL){
-		printf("No se pudo abrir el archivo: %s\n", archivo_entrada);
-		return;
-	}
-	
 	char e;
 	char TokenActual[MAX_LONG_TOKEN];
 	int indToken = 0;
@@ -231,9 +232,8 @@ void ProcesadorLexico(FILE *archivo_entrada, Tabla_Simbolos *tabla){
 			AddToken(tabla, TokenActual, IDENTIFICADOR);
 		}
 	}
-	
-	fclose(archivo_entrada);
 }
+
 //funcion para imprimir la tabla de simbolos
 void ImprimeTablaSimbolos(const Tabla_Simbolos *tabla){
 	printf("\tTabla de Simbolos\n");
@@ -261,6 +261,7 @@ void ImprimeTablaSimbolos(const Tabla_Simbolos *tabla){
 		printf("--------------------------------------------------\n");
 	}
 }
+
 //Funcion para poder empezar con la etapa del lexico
 void Lexico(FILE * archivo_entrada){
 	Tabla_Simbolos tabla;
@@ -274,49 +275,84 @@ fwrite("mov eax,1\n",1,strlen("mov eax,1\n"), manejo);
 fwrite("mov ebx,0\n",1,strlen("mov ebx,0\n"), manejo);
 fwrite("int 80h\n",1,strlen("int 80h\n"), manejo);
 */
-void traduce_ifs(FILE *archivo_entrada, FILE *archivo_salida) {
-    char linea[1024];
-    int condicion = 0;
-    int i = 0;
-	char TokenActual[MAX_LONG_TOKEN];
-    int indToken = 0;
-	
-	//rewind(archivo_salida);
-	fprintf(archivo_salida,"section .data\n");
-	fprintf(archivo_salida,"    a dd 1\n");
-	fprintf(archivo_salida,"    b dd 1\n");
-	fprintf(archivo_salida,"\n");
-	fprintf(archivo_salida,"section .text\n");
-	fprintf(archivo_salida,"    global _start\n");
-	fprintf(archivo_salida,"\n");
-	fprintf(archivo_salida,"_start:\n");
-	//fprintf(archivo_salida,"    ");
-    while (fgets(linea, sizeof(linea), archivo_entrada)!= NULL) {
-		printf("dentro del while");
-        if (strstr(linea, "if")!= NULL) {
-            // Aquí puedes agregar el código para traducir la sentencia if a lenguaje ensamblador
-			printf("comprobacion1");
-            condicion = 1;
-            i = 0;
-        } else if (strstr(linea, "else")!= NULL) {
-            // Aquí puedes agregar el código para traducir la sentencia else a lenguaje ensamblador
-            condicion = 0;
-            i = 0;
-        } else if (condicion == 1) {
-            // Aquí puedes agregar el código para traducir el código dentro del if a lenguaje ensamblador
-            while (linea[i]!= '\0') {
-                if (linea[i] == '+' || linea[i] == '-' || linea[i] == '*' || linea[i] == '/') {
-                    char separador[2] = {linea[i], '\0'};
-                    fprintf(archivo_salida, "mov eax, %s\n", separador);
-                    fprintf(archivo_salida, "mov ebx, %s\n", separador);
-                    fprintf(archivo_salida, "imul eax, ebx\n");
-                } else if (isalpha(linea[i]) || linea[i] == '_') {
-                    TokenActual[indToken++] = (char) linea[i];
-                    TokenActual[indToken] = '\0';
-                }
-                i++;
-            }
+
+void traduce_ifs(FILE *entrada, FILE *archivo_salida) {
+  char linea[1024];
+  int condicion = 0;
+  int i = 0;
+  char TokenActual[MAX_LONG_TOKEN];
+  int indToken = 0;
+  // Inicializa el buffer para el token actual
+  TokenActual[0] = '\0';
+  // Escribe la sección de datos en el archivo de salida
+  fprintf(archivo_salida,"section .data\n");
+  fprintf(archivo_salida,"  a dd 1\n");
+  fprintf(archivo_salida,"  b dd 1\n");
+  fprintf(archivo_salida,"  c dd 1\n");
+  fprintf(archivo_salida,"\n");
+
+  // Escribe la sección de texto en el archivo de salida
+  fprintf(archivo_salida,"section .text\n");
+  fprintf(archivo_salida,"  global _start\n");
+  fprintf(archivo_salida,"\n");
+
+  // Define la función _start como punto de entrada del programa
+  fprintf(archivo_salida,"_start:\n");
+  fprintf(archivo_salida,"  mov eax, [a];\n");
+  fprintf(archivo_salida,"  mov ebx, [b];\n");
+  fprintf(archivo_salida,"  mov ecx, [c];\n");
+  fprintf(archivo_salida,"\n");
+
+  // Lee la primera línea del archivo de entrada
+  if (fgets(linea, sizeof(linea), entrada) == NULL) {
+    fprintf(stderr, "Error al leer el archivo de entrada\n");
+    return;
+  }
+
+  // Ciclo para procesar cada línea del archivo de entrada
+  while (linea[0] != '\0') {
+    // Elimina el carácter de nueva línea y otros espacios en blanco al final de la línea
+    char *lineaSinN = strtok(linea, "\n\r");
+
+    // Verifica si la línea contiene la palabra clave "if"
+    if (strstr(lineaSinN, "if") != NULL) {
+      fprintf(archivo_salida,"cmp eax,ebx;\n");
+      condicion = 1;
+	  fprintf(archivo_salida,"cmp ebx,ecx;\n");
+      i = 0;
+    } else if (strstr(lineaSinN, "else") != NULL) {
+      fprintf(archivo_salida, "Se encontró una sentencia else en la línea: %s\n", lineaSinN);
+      condicion = 0;
+      i = 0;
+    } else if (condicion == 1) {
+      fprintf(archivo_salida, "Se encontró código dentro del if en la línea: %s\n", lineaSinN);
+      while (lineaSinN[i] != '\0') {
+        // Verifica si el carácter actual es un operador
+        if (lineaSinN[i] == '+' || lineaSinN[i] == '-' || lineaSinN[i] == '*' || lineaSinN[i] == '/') {
+          char separador[2] = {lineaSinN[i], '\0'};
+          fprintf(archivo_salida, "mov eax, %s\n", separador);
+          fprintf(archivo_salida, "mov ebx, %s\n", separador);
+          fprintf(archivo_salida, "imul eax, ebx\n");
+        } else if (isalpha(lineaSinN[i]) || lineaSinN[i] == '_') {
+          // Si el carácter es alfanumérico o guión bajo, lo agrega al token actual
+          TokenActual[indToken++] = lineaSinN[i];
+          TokenActual[indToken] = '\0';
+        } else if (lineaSinN[i] == ';') {
+          // Si encuentra un punto y coma, genera código ensamblador para la variable
+          if (strlen(TokenActual) > 0) {
+            fprintf(archivo_salida, "mov %s, %s\n", TokenActual, "valor_variable"); // Reemplazar "valor_variable" con la lógica para obtener el valor
+            // Limpia el buffer para el token actual
+            TokenActual[0] = '\0';
+            indToken = 0;
+          }
         }
-        traduce_ifs(archivo_entrada, archivo_salida);
+        i++;
+      }
     }
+
+    // Lee la siguiente línea del archivo de entrada
+    if (fgets(linea, sizeof(linea),entrada) == NULL) {
+      break;
+    }
+  }
 }
