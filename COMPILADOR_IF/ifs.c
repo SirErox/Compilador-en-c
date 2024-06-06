@@ -46,7 +46,9 @@ void main(int argc, char *argv[]){
     FILE * archivo_salida;
     //verificamos si se esta pasando el archivo a analizar
     if(argc!=2){
-        error(00,argv);
+        printf("\nError 0: cantidad de argumentos invalidos o archivo no encontrado.\n");
+        printf("----> \"%s\" no encontrado, favor de verificar.",argv[1]);
+        exit(0);
 //de ser asi, checamos si es un .c, ya que es el tipo de archivo que necesitamos
     } else if( (strstr(argv[1],".c"))==NULL){
         //si no se encuentra, dara error 1, indicando que se debe revisar el nombre pasado como argumento
@@ -69,11 +71,11 @@ void main(int argc, char *argv[]){
             Lexico(archivo_entrada);
 //se debe tener precaucion con lo que se pone en el archivo de salida, ya que no reemplaza lo que contiene el documento
             rewind(archivo_entrada);
-			traduce_ifs(archivo_entrada,archivo_salida);
-			cerrarasm(archivo_salida);
-			fclose(archivo_entrada);
-			fclose(archivo_salida);
-            //compiladoasm("compilado.asm");
+			      traduce_ifs(archivo_entrada,archivo_salida);
+			      cerrarasm(archivo_salida);
+			      fclose(archivo_entrada);
+			      fclose(archivo_salida);
+            compiladoasm("compilado.asm");
         }
     }
 }
@@ -98,6 +100,8 @@ void error(int tipo, char **manejo){
             case 02:
                 printf("\nError 2: No se pudo acceder o crear el archivo solicitado.\n");
                 exit(2);
+            //AÑADIR MENSAJE DE ERROR CUANDO NO SE ENCUENTREN IFS EN EL ARCHIVO
+            //03
             break;
         }
 }
@@ -123,13 +127,13 @@ void compiladoasm(char *archivo) {
     const char *const more[]= {"ld","compilado.o","-o","compilado"};
     if (execvp(args[0], args) == -1) {
         perror("\nexecvp");
-        exit(1);
+        exit(1);  
     }
     if (execvp(more[0], more) == -1) {
         perror("\nexecvp");
         exit(1);
     }
-    //system("./compilado");
+    system("./compilado");
 }
 
 //Inicio de la  tabla de simbolos
@@ -279,30 +283,11 @@ fwrite("int 80h\n",1,strlen("int 80h\n"), manejo);
 void traduce_ifs(FILE *entrada, FILE *archivo_salida) {
   char linea[1024];
   int condicion = 0;
-  int i = 0;
+  int i=0,conteo=0,contelse = 0,flag=0;
   char TokenActual[MAX_LONG_TOKEN];
   int indToken = 0;
   // Inicializa el buffer para el token actual
   TokenActual[0] = '\0';
-  // Escribe la sección de datos en el archivo de salida
-  fprintf(archivo_salida,"section .data\n");
-  fprintf(archivo_salida,"  a dd 1\n");
-  fprintf(archivo_salida,"  b dd 1\n");
-  fprintf(archivo_salida,"  c dd 1\n");
-  fprintf(archivo_salida,"\n");
-
-  // Escribe la sección de texto en el archivo de salida
-  fprintf(archivo_salida,"section .text\n");
-  fprintf(archivo_salida,"  global _start\n");
-  fprintf(archivo_salida,"\n");
-
-  // Define la función _start como punto de entrada del programa
-  fprintf(archivo_salida,"_start:\n");
-  fprintf(archivo_salida,"  mov eax, [a];\n");
-  fprintf(archivo_salida,"  mov ebx, [b];\n");
-  fprintf(archivo_salida,"  mov ecx, [c];\n");
-  fprintf(archivo_salida,"\n");
-
   // Lee la primera línea del archivo de entrada
   if (fgets(linea, sizeof(linea), entrada) == NULL) {
     fprintf(stderr, "Error al leer el archivo de entrada\n");
@@ -316,43 +301,150 @@ void traduce_ifs(FILE *entrada, FILE *archivo_salida) {
 
     // Verifica si la línea contiene la palabra clave "if"
     if (strstr(lineaSinN, "if") != NULL) {
-      fprintf(archivo_salida,"cmp eax,ebx;\n");
+      conteo++;
+    
       condicion = 1;
-	  fprintf(archivo_salida,"cmp ebx,ecx;\n");
       i = 0;
     } else if (strstr(lineaSinN, "else") != NULL) {
-      fprintf(archivo_salida, "Se encontró una sentencia else en la línea: %s\n", lineaSinN);
+      contelse++;
       condicion = 0;
       i = 0;
     } else if (condicion == 1) {
-      fprintf(archivo_salida, "Se encontró código dentro del if en la línea: %s\n", lineaSinN);
-      while (lineaSinN[i] != '\0') {
-        // Verifica si el carácter actual es un operador
-        if (lineaSinN[i] == '+' || lineaSinN[i] == '-' || lineaSinN[i] == '*' || lineaSinN[i] == '/') {
-          char separador[2] = {lineaSinN[i], '\0'};
-          fprintf(archivo_salida, "mov eax, %s\n", separador);
-          fprintf(archivo_salida, "mov ebx, %s\n", separador);
-          fprintf(archivo_salida, "imul eax, ebx\n");
-        } else if (isalpha(lineaSinN[i]) || lineaSinN[i] == '_') {
-          // Si el carácter es alfanumérico o guión bajo, lo agrega al token actual
-          TokenActual[indToken++] = lineaSinN[i];
-          TokenActual[indToken] = '\0';
-        } else if (lineaSinN[i] == ';') {
-          // Si encuentra un punto y coma, genera código ensamblador para la variable
-          if (strlen(TokenActual) > 0) {
-            fprintf(archivo_salida, "mov %s, %s\n", TokenActual, "valor_variable"); // Reemplazar "valor_variable" con la lógica para obtener el valor
-            // Limpia el buffer para el token actual
-            TokenActual[0] = '\0';
-            indToken = 0;
-          }
-        }
-        i++;
-      }
+      flag++;
     }
-
     // Lee la siguiente línea del archivo de entrada
     if (fgets(linea, sizeof(linea),entrada) == NULL) {
       break;
     }
   }
+
+    if(conteo==1&& contelse==0){
+      fprintf(archivo_salida,"section .data\n");
+      fprintf(archivo_salida,"  a dd 1\n");
+      fprintf(archivo_salida,"  b dd 1\n");
+      fprintf(archivo_salida,"  msg db 'positivo',0\n");
+      fprintf(archivo_salida,"  len equ $ - msg\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"section .text\n");
+      fprintf(archivo_salida,"  global _start\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"_start:\n");
+      fprintf(archivo_salida,"  mov eax, [a];\n");
+      fprintf(archivo_salida,"  mov ebx, [b];\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"cmp eax,ebx;\n");
+      fprintf(archivo_salida,"je if1;\n");
+      fprintf(archivo_salida,"jne done;\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"if1:\n");
+      fprintf(archivo_salida,"  mov eax, 4;\n");
+      fprintf(archivo_salida,"  mov ebx, 1;\n");
+      fprintf(archivo_salida,"  mov ecx, msg;\n");
+      fprintf(archivo_salida,"  mov edx, leng;\n");
+      fprintf(archivo_salida,"  int 80h;\n");
+      fprintf(archivo_salida,"  jmp done;");
+    } else if(conteo==1 && contelse==1){
+      fprintf(archivo_salida,"section .data\n");
+      fprintf(archivo_salida,"  a dd 1\n");
+      fprintf(archivo_salida,"  b dd 1\n");
+      fprintf(archivo_salida,"  msg db 'positivo',0\n");
+      fprintf(archivo_salida,"  len equ $ - msg\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"section .text\n");
+      fprintf(archivo_salida,"  global _start\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"_start:\n");
+      fprintf(archivo_salida,"  mov eax, [a];\n");
+      fprintf(archivo_salida,"  mov ebx, [b];\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"cmp eax,ebx;\n");
+      fprintf(archivo_salida,"je if1;\n");
+      fprintf(archivo_salida,"jne else1;\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"if1:\n");
+      fprintf(archivo_salida,"  mov eax, 4;\n");
+      fprintf(archivo_salida,"  mov ebx, 1;\n");
+      fprintf(archivo_salida,"  mov ecx, msg;\n");
+      fprintf(archivo_salida,"  mov edx, leng;\n");
+      fprintf(archivo_salida,"  int 80h;\n");
+      fprintf(archivo_salida,"  jmp done;\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"else1:");
+      fprintf(archivo_salida,"  jmp done:\n");
+      } else if(conteo==2 && contelse==1){
+        fprintf(archivo_salida,"section .data\n");
+        fprintf(archivo_salida,"  a dd 1\n");
+        fprintf(archivo_salida,"  b dd 1\n");  
+        fprintf(archivo_salida,"  c dd 1\n");
+        fprintf(archivo_salida,"  msg db 'positivo',0\n");
+        fprintf(archivo_salida,"  len equ $ - msg\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"section .text\n");
+        fprintf(archivo_salida,"  global _start\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"_start:\n");
+        fprintf(archivo_salida,"  mov eax, [a];\n");
+        fprintf(archivo_salida,"  mov ebx, [b];\n");
+        fprintf(archivo_salida,"  mov ecx, [c];\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"cmp eax,ebx;\n");
+        fprintf(archivo_salida,"je if1;\n");
+        fprintf(archivo_salida,"jmp done;\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"if1:\n");
+        fprintf(archivo_salida,"  cmp edx,ecx;\n");
+        fprintf(archivo_salida,"  je if2;\n");
+        fprintf(archivo_salida,"  jne else1;\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"if2:\n");
+        fprintf(archivo_salida,"  mov eax, 4;\n");
+        fprintf(archivo_salida,"  mov ebx, 1;\n");
+        fprintf(archivo_salida,"  mov ecx, msg;\n");
+        fprintf(archivo_salida,"  mov edx, len;\n");
+        fprintf(archivo_salida,"  int 80h;\n");
+        fprintf(archivo_salida,"  jmp done;\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"else1:\n");
+        fprintf(archivo_salida,"  jmp done;\n");
+    } else if(conteo==2 && contelse==2){
+        fprintf(archivo_salida,"section .data\n");
+        fprintf(archivo_salida,"  a dd 1\n");
+        fprintf(archivo_salida,"  b dd 1\n");  
+        fprintf(archivo_salida,"  c dd 1\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"section .text\n");
+        fprintf(archivo_salida,"  global _start\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"_start:\n");
+        fprintf(archivo_salida,"  mov eax, [a];\n");
+        fprintf(archivo_salida,"  mov ebx, [b];\n");
+        fprintf(archivo_salida,"  mov ecx, [c];\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"cmp eax,ebx;\n");
+        fprintf(archivo_salida,"je if1;\n");
+        fprintf(archivo_salida,"jne else1;\n");
+        fprintf(archivo_salida,"if1:\n");
+        fprintf(archivo_salida,"  cmp edx,ecx;\n");
+        fprintf(archivo_salida,"  je if2;\n"); 
+        fprintf(archivo_salida,"  jne else2;\n");
+        fprintf(archivo_salida,"if2;\n");
+        fprintf(archivo_salida,"  mov eax, 4;\n");
+        fprintf(archivo_salida,"  mov ebx, 1;\n");
+        fprintf(archivo_salida,"  mov ecx, msg;\n");
+        fprintf(archivo_salida,"  mov edx, len;\n");
+        fprintf(archivo_salida,"  int 80h;\n");
+        fprintf(archivo_salida,"  jmp done;\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"else1:\n");
+        fprintf(archivo_salida,"  jmp done;\n");
+        fprintf(archivo_salida,"else2:\n");
+        fprintf(archivo_salida,"  jmp done;\n");
+    } else{
+        fprintf(archivo_salida,"section .text\n");
+        fprintf(archivo_salida,"  global _start\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"_start:\n");
+        fprintf(archivo_salida,"   jmp done;\n");
+    }
+
 }
