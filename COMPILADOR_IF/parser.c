@@ -124,6 +124,7 @@ fwrite("    int 80h\n",1,strlen("    int 80h\n"), manejo);
 //funcion para el compilado del archivo .asm
 //a travez de comandos ingresados con EXECVP compilamos el .asm
 void compiladoasm(char *archivo) {
+    printf("\nCodigo asm generado exitosamente, empezando comprobacion...\n");
     const char *const args[] = {"nasm", "-f", "elf64", archivo, NULL};
     const char *const more[]= {"ld","compilado.o","-o","compilado"};
     if (execvp(args[0], args) == -1) {
@@ -491,6 +492,7 @@ void Analiza_IF(FILE *entrada,FILE *archivo_salida){
 				}
 			}
 		}
+
 		// Verifica si hay una l�nea que contiene un '}' de cierre
 		if (strchr(inicio, '}')) {
 			if (conteo_else > 0) {
@@ -501,7 +503,7 @@ void Analiza_IF(FILE *entrada,FILE *archivo_salida){
 			}
 		}
 	}
-    printf("%d,%d\n",conteoif,conteoelse);
+    printf("Numero de stentencias if encontradas:%d\nNumero de sentencias else encontradas:%d\n",conteoif,conteoelse);
     if(conteoif==1&& conteoelse==0){
       fprintf(archivo_salida,"section .data\n");
       fprintf(archivo_salida,"  a dd 1\n");
