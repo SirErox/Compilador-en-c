@@ -31,7 +31,6 @@ void Analiza_IF(const char *entrada){
 		// Verifica si hay una línea que contiene un 'if'
 		if (strncmp(inicio, "if(", 3) == 0 || strncmp(inicio, "if (", 4) == 0) {
 			conteo_if++;
-			printf("Verifica if: %d\n", conteo_if);
 			while (!strchr(inicio, '{')) {
 				inicio++;
 				if (strchr(inicio, '}')){
@@ -44,7 +43,6 @@ void Analiza_IF(const char *entrada){
 		// Verifica si hay una línea que contiene un 'else'
 		if (strncmp(inicio, "}else", 5) == 0 || strncmp(inicio, "else", 4) == 0) {
 			conteo_else++;
-			printf("Verifica else: %d\n", conteo_else);
 			if (conteo_if == 0) {
 				snprintf(mensaje_error, sizeof(mensaje_error), "Error: 'else' sin correspondiente 'if' en la línea %d", numero_linea);
 				break;
@@ -64,15 +62,12 @@ void Analiza_IF(const char *entrada){
 			if (conteo_else > 0) {
 				conteo_else--;
 				conteo_if--;
-				printf("Verifica else }: %d %d\n", conteo_if, conteo_else);
 			} else if (conteo_if > 0) {
 				conteo_if--;
-				printf("Verifica if }: %d\n", conteo_if);
 			}
 		}
 	}
 	
-	printf("Verifica final: %d %d\n", conteo_if, conteo_else);
 	// Limpia
 	fclose(archivo_entrada);
 	
