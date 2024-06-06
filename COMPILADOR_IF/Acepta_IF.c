@@ -18,17 +18,17 @@ void Analiza_IF(const char *entrada){
 		return;
 	}
 	
-	// Lee el archivo línea por línea
+	// Lee el archivo lï¿½nea por lï¿½nea
 	while (fgets(linea, MAX_LONG_LINEA, archivo_entrada)) {
 		numero_linea++;
 		
-		// Se salta espacios al inicio de la línea
+		// Se salta espacios al inicio de la lï¿½nea
 		char *inicio = linea;
 		while (*inicio == ' ' || *inicio == '\t') {
 			inicio++;
 		}
 		
-		// Verifica si hay una línea que contiene un 'if'
+		// Verifica si hay una lï¿½nea que contiene un 'if'
 		if (strncmp(inicio, "if(", 3) == 0 || strncmp(inicio, "if (", 4) == 0) {
 			conteo_if++;
 			while (!strchr(inicio, '{')) {
@@ -40,11 +40,11 @@ void Analiza_IF(const char *entrada){
 			}
 		}
 		
-		// Verifica si hay una línea que contiene un 'else'
+		// Verifica si hay una lï¿½nea que contiene un 'else'
 		if (strncmp(inicio, "}else", 5) == 0 || strncmp(inicio, "else", 4) == 0) {
 			conteo_else++;
 			if (conteo_if == 0) {
-				snprintf(mensaje_error, sizeof(mensaje_error), "Error: 'else' sin correspondiente 'if' en la línea %d", numero_linea);
+				snprintf(mensaje_error, sizeof(mensaje_error), "Error: 'else' sin correspondiente 'if' en la lï¿½nea %d", numero_linea);
 				break;
 			}
 			while (!strchr(inicio, '{')) {
@@ -57,7 +57,7 @@ void Analiza_IF(const char *entrada){
 		}
 		
 		
-		// Verifica si hay una línea que contiene un '}' de cierre
+		// Verifica si hay una lï¿½nea que contiene un '}' de cierre
 		if (strchr(inicio, '}')) {
 			if (conteo_else > 0) {
 				conteo_else--;
@@ -71,7 +71,7 @@ void Analiza_IF(const char *entrada){
 	// Limpia
 	fclose(archivo_entrada);
 	
-	// Verifica si hay algún error
+	// Verifica si hay algï¿½n error
 	if (strlen(mensaje_error) > 0) {
 		printf("%s\n", mensaje_error);
 	} else if (conteo_if > 0) {

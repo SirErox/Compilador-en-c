@@ -11,6 +11,7 @@
 
 #define MAX_LONG_TOKEN 100
 #define TAM_TABLA 100
+#define MAX_LONG_LINEA 254
 
 typedef enum{
 	RESERVADA,
@@ -30,6 +31,7 @@ typedef struct{
 
 //declaracion de funciones a usar en todo el codigo
 void error(int tipo, char **manejo);
+void Analiza_IF(FILE *entrada,FILE *archivo_salida);
 void cerrarasm(FILE * manejo);
 void compiladoasm(char  *archivo);
 void Lexico(FILE * archivo_entrada);
@@ -39,7 +41,7 @@ int EsSeparador(char cs);
 int EsReservada(const char *palabra);
 void AddToken(Tabla_Simbolos *tabla, const char *token, Tipo_de_Token tipo);
 void IniTablaSimbolos(Tabla_Simbolos *tabla);
-void traduce_ifs(FILE *archivo_entrada, FILE *archivo_salida);
+//void traduce_ifs(FILE *archivo_entrada, FILE *archivo_salida);
 
 void main(int argc, char *argv[]){
     FILE * archivo_entrada;
@@ -52,7 +54,11 @@ void main(int argc, char *argv[]){
 //de ser asi, checamos si es un .c, ya que es el tipo de archivo que necesitamos
     } else if( (strstr(argv[1],".c"))==NULL){
         //si no se encuentra, dara error 1, indicando que se debe revisar el nombre pasado como argumento
-        error(01,argv);
+        //error(01,argv);
+            printf("\nError 1: Archivo no encontrado o mal escrito.\n");
+                printf("----> \"%s\" no se encontro o esta mal escrito.\n",argv[1]);
+                printf("Te recuerdo que el programa necesita un archivo con extension .c, otro tipo dara error.");
+                exit(1);
     }else{
         //intentamos abrir el archivo, el cual tiene que estar creado
         //r — abre el archivo en modo de solo lectura. 
@@ -63,15 +69,15 @@ void main(int argc, char *argv[]){
         if(!archivo_entrada)
             error(01,argv);        
             if(!archivo_salida){
-                error(02,argv);
-            
+               printf("\nError 2: No se pudo acceder o crear el archivo solicitado.\n");
+                exit(2);
         //si se pudo leer el archivo de entrada y se crea el archivo de salida, podemos continuar
         }else{
             printf("Archivo encontrado, abriendo...\n");
             Lexico(archivo_entrada);
 //se debe tener precaucion con lo que se pone en el archivo de salida, ya que no reemplaza lo que contiene el documento
             rewind(archivo_entrada);
-			      traduce_ifs(archivo_entrada,archivo_salida);
+			     Analiza_IF(archivo_entrada,archivo_salida);
 			      cerrarasm(archivo_salida);
 			      fclose(archivo_entrada);
 			      fclose(archivo_salida);
@@ -91,17 +97,12 @@ void error(int tipo, char **manejo){
                 printf("----> \"%s\" no encontrado, favor de verificar.",manejo[1]);
                 exit(0);
             break;
+
             case 01:
                 printf("\nError 1: Archivo no encontrado o mal escrito.\n");
                 printf("----> \"%s\" no se encontro o esta mal escrito.\n",manejo[1]);
                 printf("Te recuerdo que el programa necesita un archivo con extension .c, otro tipo dara error.");
                 exit(1);
-            break;
-            case 02:
-                printf("\nError 2: No se pudo acceder o crear el archivo solicitado.\n");
-                exit(2);
-            //AÑADIR MENSAJE DE ERROR CUANDO NO SE ENCUENTREN IFS EN EL ARCHIVO
-            //03
             break;
         }
 }
@@ -274,12 +275,7 @@ void Lexico(FILE * archivo_entrada){
 	ProcesadorLexico(archivo_entrada, &tabla);
 	ImprimeTablaSimbolos(&tabla);
 }
-/* fseek(manejo,0,SEEK_END);
-fwrite("mov eax,1\n",1,strlen("mov eax,1\n"), manejo);
-fwrite("mov ebx,0\n",1,strlen("mov ebx,0\n"), manejo);
-fwrite("int 80h\n",1,strlen("int 80h\n"), manejo);
-*/
-
+/*
 void traduce_ifs(FILE *entrada, FILE *archivo_salida) {
   char linea[1024];
   int condicion = 0;
@@ -446,5 +442,204 @@ void traduce_ifs(FILE *entrada, FILE *archivo_salida) {
         fprintf(archivo_salida,"_start:\n");
         fprintf(archivo_salida,"   jmp done;\n");
     }
+}
+*/
+void Analiza_IF(FILE *entrada,FILE *archivo_salida){
+	
+	char linea[MAX_LONG_LINEA];
+	int conteo_if = 0, conteo_else = 0;
+	int numero_linea = 0,conteoif=0,conteoelse=0;
+	char mensaje_error[MAX_LONG_LINEA] = "";
+	
+	
+	// Lee el archivo l�nea por l�nea
+	while (fgets(linea, MAX_LONG_LINEA, entrada)) {
+		numero_linea++;
+		
+		// Se salta espacios al inicio de la l�nea
+		char *inicio = linea;
+		while (*inicio == ' ' || *inicio == '\t') {
+			inicio++;
+		}
+		
+		// Verifica si hay una l�nea que contiene un 'if'
+		if (strncmp(inicio, "if(", 3) == 0 || strncmp(inicio, "if (", 4) == 0) {
+			conteo_if++;
+      conteoif++;
+			while (!strchr(inicio, '{')) {
+				inicio++;
+				if (strchr(inicio, '}')){
+					snprintf(mensaje_error, sizeof(mensaje_error), "Error: se esperaba un '{' despues del 'if' en la linea %d", numero_linea);
+					break;
+				}
+			}
+		}
 
+		// Verifica si hay una l�nea que contiene un 'else'
+		if (strncmp(inicio, "}else", 5) == 0 || strncmp(inicio, "else", 4) == 0) {
+			conteo_else++;
+      conteoelse++;
+			if (conteo_if == 0) {
+				snprintf(mensaje_error, sizeof(mensaje_error), "Error: 'else' sin correspondiente 'if' en la l�nea %d", numero_linea);
+				break;
+			}
+			while (!strchr(inicio, '{')) {
+				inicio++;
+				if (strchr(inicio, '}')){
+					snprintf(mensaje_error, sizeof(mensaje_error), "Error: se esperaba un '{' despues del 'else' en la linea %d", numero_linea);
+					break;
+				}
+			}
+		}
+		// Verifica si hay una l�nea que contiene un '}' de cierre
+		if (strchr(inicio, '}')) {
+			if (conteo_else > 0) {
+				conteo_else--;
+				conteo_if--;
+			} else if (conteo_if > 0) {
+				conteo_if--;
+			}
+		}
+	}
+    printf("%d,%d\n",conteoif,conteoelse);
+    if(conteoif==1&& conteoelse==0){
+      fprintf(archivo_salida,"section .data\n");
+      fprintf(archivo_salida,"  a dd 1\n");
+      fprintf(archivo_salida,"  b dd 1\n");
+      fprintf(archivo_salida,"  msg db 'positivo',0\n");
+      fprintf(archivo_salida,"  len equ $ - msg\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"section .text\n");
+      fprintf(archivo_salida,"  global _start\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"_start:\n");
+      fprintf(archivo_salida,"  mov eax, [a];\n");
+      fprintf(archivo_salida,"  mov ebx, [b];\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"cmp eax,ebx;\n");
+      fprintf(archivo_salida,"je if1;\n");
+      fprintf(archivo_salida,"jne done;\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"if1:\n");
+      fprintf(archivo_salida,"  mov eax, 4;\n");
+      fprintf(archivo_salida,"  mov ebx, 1;\n");
+      fprintf(archivo_salida,"  mov ecx, msg;\n");
+      fprintf(archivo_salida,"  mov edx, len;\n");
+      fprintf(archivo_salida,"  int 80h;\n");
+      fprintf(archivo_salida,"  jmp done;");
+    } else if(conteoif==1 && conteoelse==1){
+      fprintf(archivo_salida,"section .data\n");
+      fprintf(archivo_salida,"  a dd 1\n");
+      fprintf(archivo_salida,"  b dd 1\n");
+      fprintf(archivo_salida,"  msg db 'positivo',0\n");
+      fprintf(archivo_salida,"  len equ $ - msg\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"section .text\n");
+      fprintf(archivo_salida,"  global _start\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"_start:\n");
+      fprintf(archivo_salida,"  mov eax, [a];\n");
+      fprintf(archivo_salida,"  mov ebx, [b];\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"cmp eax,ebx;\n");
+      fprintf(archivo_salida,"je if1;\n");
+      fprintf(archivo_salida,"jne else1;\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"if1:\n");
+      fprintf(archivo_salida,"  mov eax, 4;\n");
+      fprintf(archivo_salida,"  mov ebx, 1;\n");
+      fprintf(archivo_salida,"  mov ecx, msg;\n");
+      fprintf(archivo_salida,"  mov edx, leng;\n");
+      fprintf(archivo_salida,"  int 80h;\n");
+      fprintf(archivo_salida,"  jmp done;\n");
+      fprintf(archivo_salida,"\n");
+      fprintf(archivo_salida,"else1:");
+      fprintf(archivo_salida,"  jmp done:\n");
+      } else if(conteoif==2 && conteoelse==1){
+        fprintf(archivo_salida,"section .data\n");
+        fprintf(archivo_salida,"  a dd 1\n");
+        fprintf(archivo_salida,"  b dd 1\n");  
+        fprintf(archivo_salida,"  c dd 1\n");
+        fprintf(archivo_salida,"  msg db 'positivo',0\n");
+        fprintf(archivo_salida,"  len equ $ - msg\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"section .text\n");
+        fprintf(archivo_salida,"  global _start\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"_start:\n");
+        fprintf(archivo_salida,"  mov eax, [a];\n");
+        fprintf(archivo_salida,"  mov ebx, [b];\n");
+        fprintf(archivo_salida,"  mov ecx, [c];\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"cmp eax,ebx;\n");
+        fprintf(archivo_salida,"je if1;\n");
+        fprintf(archivo_salida,"jmp done;\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"if1:\n");
+        fprintf(archivo_salida,"  cmp edx,ecx;\n");
+        fprintf(archivo_salida,"  je if2;\n");
+        fprintf(archivo_salida,"  jne else1;\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"if2:\n");
+        fprintf(archivo_salida,"  mov eax, 4;\n");
+        fprintf(archivo_salida,"  mov ebx, 1;\n");
+        fprintf(archivo_salida,"  mov ecx, msg;\n");
+        fprintf(archivo_salida,"  mov edx, len;\n");
+        fprintf(archivo_salida,"  int 80h;\n");
+        fprintf(archivo_salida,"  jmp done;\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"else1:\n");
+        fprintf(archivo_salida,"  jmp done;\n");
+    } else if(conteoif==2 && conteoelse==2){
+        fprintf(archivo_salida,"section .data\n");
+        fprintf(archivo_salida,"  a dd 1\n");
+        fprintf(archivo_salida,"  b dd 1\n");  
+        fprintf(archivo_salida,"  c dd 1\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"section .text\n");
+        fprintf(archivo_salida,"  global _start\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"_start:\n");
+        fprintf(archivo_salida,"  mov eax, [a];\n");
+        fprintf(archivo_salida,"  mov ebx, [b];\n");
+        fprintf(archivo_salida,"  mov ecx, [c];\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"cmp eax,ebx;\n");
+        fprintf(archivo_salida,"je if1;\n");
+        fprintf(archivo_salida,"jne else1;\n");
+        fprintf(archivo_salida,"if1:\n");
+        fprintf(archivo_salida,"  cmp edx,ecx;\n");
+        fprintf(archivo_salida,"  je if2;\n"); 
+        fprintf(archivo_salida,"  jne else2;\n");
+        fprintf(archivo_salida,"if2;\n");
+        fprintf(archivo_salida,"  mov eax, 4;\n");
+        fprintf(archivo_salida,"  mov ebx, 1;\n");
+        fprintf(archivo_salida,"  mov ecx, msg;\n");
+        fprintf(archivo_salida,"  mov edx, len;\n");
+        fprintf(archivo_salida,"  int 80h;\n");
+        fprintf(archivo_salida,"  jmp done;\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"else1:\n");
+        fprintf(archivo_salida,"  jmp done;\n");
+        fprintf(archivo_salida,"else2:\n");
+        fprintf(archivo_salida,"  jmp done;\n");
+    } else{
+        fprintf(archivo_salida,"section .text\n");
+        fprintf(archivo_salida,"  global _start\n");
+        fprintf(archivo_salida,"\n");
+        fprintf(archivo_salida,"_start:\n");
+        fprintf(archivo_salida,"   jmp done;\n");
+    }
+   
+	// Verifica si hay alg�n error
+	if (strlen(mensaje_error) > 0) {
+		printf("%s\n", mensaje_error);
+	} else if (conteo_if > 0) {
+		printf("Error: Bloques 'if' sin cerrar en la linea %d\n", numero_linea);
+	} else if (conteo_else > 0) {
+		printf("Error: Bloques 'else' sin cerrar\n");
+	} else {
+		  printf("La estructura de los 'if' y 'else' es correcta\n");
+     
+  }
 }
